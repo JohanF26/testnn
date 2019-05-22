@@ -173,9 +173,9 @@ float* softmax_ds(float* out, float* us){
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
         for(size_t j = 0; j < (int) NUM_NEURONS/EPOCH_SIZE; j++){
             if( i == j) {
-                sm_ds[j] += (out[i]*(1 - out[j])) * us[i];
+                sm_ds[i] += (out[j]*(1 - out[i])) * us[j];
             } else {
-                sm_ds[j] += (-out[j]*out[i])*us[i];
+                sm_ds[i] += (-out[i]*out[j])*us[j];
             }
         }
     }
