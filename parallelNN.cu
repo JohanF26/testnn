@@ -111,9 +111,9 @@ void read_labels(const std::string &file_name, unsigned char* (&labels)){
 void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** (&fcld)){
 
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator;
-    generator.seed(123);
-    std::normal_distribution<float> distribution(0.0, 1.0);
+    unsigned seed = 8493;
+    std::default_random_engine generator(seed);
+    std::normal_distribution<float> distribution;
 
     ilw = new float**[NUM_NEURONS]();
     ild = new float**[NUM_NEURONS]();
@@ -201,7 +201,7 @@ int main(int argc, char** argv){
 
     generateWeights(input_layer_w, input_layer_deriv, fully_connected_layer_w, fully_connected_layer_deriv);
 
-    //std::cout << input_layer_w[0][0][0] << std::endl;
+    std::cout << input_layer_w[0][0][0] << std::endl;
 
     //First fully connected layer
     float *first_layer = new float[NUM_NEURONS]();
