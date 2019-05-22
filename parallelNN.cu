@@ -155,7 +155,7 @@ float* softmax(float *in){
     float* out = new float[(int) NUM_NEURONS/EPOCH_SIZE];
     float sum = 0;
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
-        std::cout << in[i] << " " << C << std::endl;
+        std::cout << in[i] - C << std::endl;
         out[i] = std::exp(in[i] - C);
         assert(out[i] != 0);
         sum += out[i];
@@ -196,6 +196,15 @@ float* softmax_ds(float* out, float* us){
     return sm_ds;
 }
 
+__global__ void update_dense_weights(float *w1, float *ds1){
+    //current thread and node num
+    int tid = blockIdx.x * blockDim.x + threadIDx.x;
+
+    w1[tid] -= (BATCH_SIZE/1000)*ds1[id];
+    ds1[id] = 0;
+
+}
+
 int main(int argc, char** argv){
     if(argc != 3){
         std::cerr << "Wrong number of inputs. Usage: ./parallelNN <images> <labels>" << std::endl;
@@ -208,37 +217,46 @@ int main(int argc, char** argv){
     read_images(std::string(argv[1]), training_images);
     read_labels(std::string(argv[2]), training_labels);
 
-    float ***input_layer_w, ***input_layer_deriv;
-    float **fully_connected_layer_w, **fully_connected_layer_deriv;
+    float ***input_layer_w, ***input_layer_ds;
+    float **fully_connected_layer_w, **fully_connected_layer_ds;
 
     //std::cout << input_layer_w[0][0][0] << std::endl;
 
-    generateWeights(input_layer_w, input_layer_deriv, fully_connected_layer_w, fully_connected_layer_deriv);
+    generateWeights(input_layer_w, input_layer_ds, fully_connected_layer_w, fully_connected_layer_ds);
 
     //First fully connected layer
     float *first_layer = new float[NUM_NEURONS]();
-    float *first_layer_deriv = new float[NUM_NEURONS]();
+    float *first_layer_ds = new float[NUM_NEURONS]();
 
     //Second fully connected layer
     float *second_layer = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
-    float *second_layer_deriv = new float[NUM_NEURONS]();
+    float *second_layer_ds = new float[NUM_NEURONS]();
 
     //Softmax layer
     float *soft_max_layer = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
-    float *soft_max_layer_deriv = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
+    float *soft_max_layer_ds = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
 
     //Cross-entropy layer
     float* cross_ent_layer = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
 
-    //bias nodes
-    float *first_layer_bias = new float[NUM_NEURONS]();
-    float *first_layer_bias_deriv = new float[NUM_NEURONS]();
-    float *second_layer_bias =  new float[(int)NUM_NEURONS/EPOCH_SIZE]();
-    float *second_layer_bias_deriv = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
+    //CUDA
+    float *dense_layer_w1, *dense_layer_ds1, *dense_layer_w2, *dense_layer_ds2;
+    //place them in contiguoys memory
+    float *hidden_layer_w1 = new float[NUM_NEURONS*ROWS*COLS]();
+    float *hidden_layer_ds1 = new float[NUM_NEURONS*ROWS*COLS]();
+    float *hidden_layer_w2 = new float[NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE)]();
+    float *hidden_layer_ds2 = new float[NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE)]();
 
+    cudaMalloc(&dense_layer_w1, NUM_NEURONS*ROWS*COLS*(sizeof(float)));
+    cudaMalloc(&dense_layer_ds1, NUM_NEURONS*ROWS*COLS*(sizeof(float)));
+    cudaMalloc(&dense_layer_w2, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)));
+    cudaMalloc(&dense_layer_ds2, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)));
+
+    //to generate random number for dropout
     std::srand(std::time(0));
 
     for(int e = 0; e < EPOCH_SIZE; e++){
+        //rounds
         for(int j = 0; j < EPOCH_SIZE; j++){
 
             //FORWARD
@@ -269,7 +287,6 @@ int main(int argc, char** argv){
                             }
                         }
                         //ReLU
-                        temp_result += first_layer_bias[n];
                         if(temp_result < 0){
                             first_layer[n] = 0;
                         } else{
@@ -282,9 +299,9 @@ int main(int argc, char** argv){
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
+                        //second_layer weights are too large/small
                         second_layer[k] += fully_connected_layer_w[k][n] * first_layer[n];
                     }
-                    second_layer[k] += second_layer_bias[k];
                 }
 
                 soft_max_layer = softmax(second_layer);
@@ -294,62 +311,90 @@ int main(int argc, char** argv){
                 total++;
 
                 cross_ent_layer[current_label] = -1 / soft_max_layer[current_label];
-                std::cout << "2" << std::endl;
-                std::cout << soft_max_layer[current_label] << std::endl;
-                std::cout << cross_ent_layer[current_label] << std::endl;
 
                 //BACK-PROPAGATION
 
-                soft_max_layer_deriv = softmax_ds(soft_max_layer, cross_ent_layer);
+                soft_max_layer_ds = softmax_ds(soft_max_layer, cross_ent_layer);
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
-                        second_layer_deriv[n] = 0;
+                        second_layer_ds[n] = 0;
                     }
                     for(int n = 0; n < NUM_NEURONS; n++){
-                        fully_connected_layer_deriv[k][n] += ((first_layer[n] * soft_max_layer_deriv[k]) / BATCH_SIZE);
-                        second_layer_deriv[n] += fully_connected_layer_w[k][n] * soft_max_layer_deriv[k];
+                        fully_connected_layer_ds[k][n] += ((first_layer[n] * soft_max_layer_ds[k]) / BATCH_SIZE);
+                        second_layer_ds[n] += fully_connected_layer_w[k][n] * soft_max_layer_ds[k];
                     }
-                    second_layer_bias_deriv[k] = soft_max_layer_deriv[k] / BATCH_SIZE;
                 }
 
                 for(int n = 0; n < NUM_NEURONS; n++){
                     for(int r = 0; r < ROWS; r++){
                         for(int c = 0; c < COLS; c++){
-                            input_layer_deriv[n][r][c] +=  (current_image[r][c] * second_layer_deriv[n])/BATCH_SIZE;
+                            input_layer_ds[n][r][c] +=  (current_image[r][c] * second_layer_ds[n])/BATCH_SIZE;
                         }
                     }
-                    first_layer_bias_deriv[n] = second_layer_deriv[n] / BATCH_SIZE;
                 }
 
                 //UPDATE WEIGHTS
-
-                for(int n = 0; n < NUM_NEURONS; n++){
-                    for(int r = 0; r < ROWS; r++){
-                        for(int c = 0; c < COLS; c++){
-                            input_layer_w[n][r][c] -=  input_layer_deriv[n][r][c] * learning_rate;
-                            //std::cout << input_layer_deriv[n][r][c] << std::endl;
-                            //std::cout << input_layer_w[n][r][c] << std::endl;
-                            input_layer_deriv[n][r][c] = 0;
-                        }
+                //copy to contiguous array to copy to CUDA mem
+                for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
+                    for(int n = 0; n < NUM_NEURONS; n++){
+                        hidden_layer_w2[k*NUM_NEURONS + n] = fully_connected_layer_w[k][n] ;
+                        hidden_layer_ds2[k*NUM_NEURONS + n] = fully_connected_layer_ds[k][n];
                     }
-                    first_layer_bias[n] -= first_layer_bias_deriv[n] * learning_rate;
-                    first_layer_bias_deriv[n] = 0;
                 }
+                cudaMemcpy(dense_layer_w2, hidden_layer_w2, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
+                cudaMemcpy(dense_layer_ds2, hidden_layer_ds2, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
+
+                update_dense_weights<<<(int)NUM_NEURONS/EPOCH_SIZE, NUM_NEURONS>>>(dense_layer_w2, dense_layer_ds2);
+
+                //copy back
+                cudaMemcpy(hidden_layer_w2, dense_layer_w2, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
+                cudaMemcpy(hidden_layer_ds2, dense_layer_ds2, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
 
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
-                        fully_connected_layer_w[k][n] -= fully_connected_layer_deriv[k][n] * learning_rate;
-                        fully_connected_layer_deriv[k][n] = 0;
+                        fully_connected_layer_w[k][n] = hidden_layer_w2[k*NUM_NEURONS + n];
+                        fully_connected_layer_ds[k][n] = hidden_layer_ds2[k*NUM_NEURONS + n];
                     }
-                    second_layer_bias[k] -= second_layer_bias_deriv[k] * learning_rate;
-                    second_layer_bias_deriv[k] = 0;
+                }
+
+                /*----------------------*/
+
+                for(int n = 0; n < NUM_NEURONS; n++){
+                    for(int r = 0; r < ROWS; r++){
+                        for(int c = 0; c < COLS; c++){
+                            hidden_layer_w1[n*ROWS*COLS + r*ROWS + c] =  input_layer_w[n][r][c];
+                            //std::cout << input_layer_ds[n][r][c] << std::endl;
+                            //std::cout << input_layer_w[n][r][c] << std::endl;
+                            hidden_layer_ds1[n*ROWS*COLS + r*ROWS + c] = input_layer_ds[n][r][c];
+                        }
+                    }
+                }
+                cudaMemcpy(dense_layer_w1, hidden_layer_w1,  NUM_NEURONS*ROWS*COLS*(sizeof(float)), cudaMemcpyHostToDevice);
+                cudaMemcpy(dense_layer_ds1, hidden_layer_ds1, NUM_NEURONS*ROWS*COLS*(sizeof(float)), cudaMemcpyHostToDevice);
+
+                update_dense_weights<<<(int)NUM_NEURONS/EPOCH_SIZE, NUM_NEURONS>>>(dense_layer_w1, dense_layer_ds1);
+
+                //copy back
+                cudaMemcpy(hidden_layer_w1, dense_layer_w1, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
+                cudaMemcpy(hidden_layer_ds1, dense_layer_ds1, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
+
+
+                for(int n = 0; n < NUM_NEURONS; n++){
+                    for(int r = 0; r < ROWS; r++){
+                        for(int c = 0; c < COLS; c++){
+                            input_layer_w[n][r][c] = hidden_layer_w1[n*ROWS*COLS + r*ROWS + c];
+                            //std::cout << input_layer_ds[n][r][c] << std::endl;
+                            //std::cout << input_layer_w[n][r][c] << std::endl;
+                            input_layer_ds[n][r][c] = hidden_layer_ds1[n*ROWS*COLS + r*ROWS + c];
+                        }
+                    }
                 }
             }
-            if(j % 5 == 0){
+            if(j % 100 == 0){
                 //std::cout << input_layer_w[0][0][0] << std::endl;
-                printf("Correct = %d\n", correct);
+                printf("Epoch %d: Round %d: accuracy=%f\n", e, j, correct/total);
             }
 
         }
