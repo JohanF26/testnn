@@ -200,7 +200,7 @@ __global__ void update_dense_weights(float *w1, float *ds1){
     //current thread and node num
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    w1[tid] -= (BATCH_SIZE/1000)*ds1[id];
+    w1[tid] -= (BATCH_SIZE/1000)*ds1[tid];
     ds1[tid] = 0;
 
 }
