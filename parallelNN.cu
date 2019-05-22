@@ -111,8 +111,8 @@ void read_labels(const std::string &file_name, unsigned char* (&labels)){
 void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** (&fcld)){
 
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    unsigned seed = 8493;
-    std::default_random_engine generator(seed);
+    std::default_random_engine generator;
+    generator.seed(123);
     std::normal_distribution<float> distribution(0.0, 1.0);
 
     ilw = new float**[NUM_NEURONS]();
