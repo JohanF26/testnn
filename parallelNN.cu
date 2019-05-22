@@ -318,6 +318,7 @@ int main(int argc, char** argv){
                     first_layer_bias_deriv[n] = 0;
                 }
                 std::cout << "2" << std::endl;
+                std::cout << input_layer_deriv[0][0][0] << std::endl;
                 std::cout << input_layer_w[0][0][0] << std::endl;
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
