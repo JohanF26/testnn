@@ -168,7 +168,7 @@ float* softmax(float *in){
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
         assert(out[i] != 0);
         if(out[i] != 0){
-            std::cout << "GOOD" << std::endl;
+            std::cout << out[i] << std::endl;
         }
     }
 
