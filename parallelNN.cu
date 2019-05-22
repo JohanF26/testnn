@@ -198,10 +198,10 @@ float* softmax_ds(float* out, float* us){
 
 __global__ void update_dense_weights(float *w1, float *ds1){
     //current thread and node num
-    int tid = blockIdx.x * blockDim.x + threadIDx.x;
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     w1[tid] -= (BATCH_SIZE/1000)*ds1[id];
-    ds1[id] = 0;
+    ds1[tid] = 0;
 
 }
 
@@ -273,7 +273,6 @@ int main(int argc, char** argv){
                 int current_label = (int) training_labels[EPOCH_SIZE*j + i];
                 float** current_image = training_images[EPOCH_SIZE*j + i];
 
-                float learning_rate = BATCH_SIZE / 1000;
                 for(int n = 0; n < NUM_NEURONS; n++){
                     float temp_result = 0;
                     //dropout rate of 0.4%
