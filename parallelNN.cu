@@ -304,6 +304,8 @@ int main(int argc, char** argv){
                     }
                     first_layer_bias_deriv[n] = second_layer_deriv[n] / BATCH_SIZE;
                 }
+                std::cout << "2" << std::endl;
+                std::cout << input_layer_deriv[0][0][0] << std::endl;
 
                 //UPDATE WEIGHTS
 
@@ -311,16 +313,15 @@ int main(int argc, char** argv){
                     for(int r = 0; r < ROWS; r++){
                         for(int c = 0; c < COLS; c++){
                             input_layer_w[n][r][c] -=  input_layer_deriv[n][r][c] * learning_rate;
-                            std::cout << input_layer_deriv[n][r][c] << std::endl;
-                            std::cout << input_layer_w[n][r][c] << std::endl;
+                            //std::cout << input_layer_deriv[n][r][c] << std::endl;
+                            //std::cout << input_layer_w[n][r][c] << std::endl;
                             input_layer_deriv[n][r][c] = 0;
                         }
                     }
                     first_layer_bias[n] -= first_layer_bias_deriv[n] * learning_rate;
                     first_layer_bias_deriv[n] = 0;
                 }
-                std::cout << "2" << std::endl;
-                std::cout << input_layer_w[0][0][0] << std::endl;
+
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
