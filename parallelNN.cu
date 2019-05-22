@@ -330,8 +330,8 @@ int main(int argc, char** argv){
                 }
             }
             if(j % 5 == 0){
-                std::cout << input_layer_w[0][0][0] << std::endl;
-                printf("ACCURACY = %f\n", correct / total);
+                //std::cout << input_layer_w[0][0][0] << std::endl;
+                printf("Correct = %d\n", correct);
             }
 
         }
