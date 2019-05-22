@@ -8,6 +8,7 @@
 #include <ctime>
 #include <algorithm>
 #include <fcntl.h>
+#include <unistd.h>
 
 //constants
 #define TRAINING_SET_SIZE 60000
@@ -84,7 +85,7 @@ void read_labels(const std::string &file_name, unsigned char* (&labels)){
 
     int magic_num, num_labels;
 
-    rv = read(fd, &magic_num, 4);
+    int rv = read(fd, &magic_num, 4);
     assert(rv == 4);
     //change endianess
     toLittleEndian(magic_num);
