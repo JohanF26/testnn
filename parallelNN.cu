@@ -309,6 +309,7 @@ int main(int argc, char** argv){
                     for(int r = 0; r < ROWS; r++){
                         for(int c = 0; c < COLS; c++){
                             input_layer_w[n][r][c] -=  input_layer_deriv[n][r][c] * learning_rate;
+                            std::cout << input_layer_w[n][r][c] << std::endl;
                             input_layer_deriv[n][r][c] = 0;
                         }
                     }
