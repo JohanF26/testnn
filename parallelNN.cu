@@ -41,6 +41,7 @@ void read_images(const std::string &file_name, float*** (&imgs)){
     assert(rv == 4);
     //change endianess
     toLittleEndian(magic_num);
+    assert(magic_num == 0x803);
 
     rv = read(fd, &num_imgs, 4);
     assert(rv == 4);
