@@ -279,10 +279,10 @@ int main(int argc, char** argv){
                 }
                 total++;
 
+                cross_ent_layer[current_label] = -1 / soft_max_layer[current_label];
                 std::cout << "2" << std::endl;
                 std::cout << soft_max_layer[current_label] << std::endl;
-
-                cross_ent_layer[current_label] = -1 / soft_max_layer[current_label];
+                std::cout << cross_ent_layer[current_label] << std::endl;
 
                 //BACK-PROPAGATION
 
