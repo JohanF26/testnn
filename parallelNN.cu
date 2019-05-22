@@ -284,7 +284,7 @@ int main(int argc, char** argv){
                 //BACK-PROPAGATION
 
                 std::cout << "2" << std::endl;
-                std::cout << cross_ent_layer[0] << std::endl;
+                std::cout << cross_ent_layer[current_label] << std::endl;
 
                 soft_max_layer_deriv = softmax_ds(soft_max_layer, cross_ent_layer);
 
