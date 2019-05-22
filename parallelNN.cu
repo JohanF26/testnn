@@ -243,7 +243,7 @@ int main(int argc, char** argv){
                     float temp_result = 0;
                     //dropout rate of 0.4%
                     if(std::rand() % 1000 < 4){
-                        first_layer[n] = 0
+                        first_layer[n] = 0;
                     } else{
                         for(int r = 0; r < ROWS; r++){
                             for(int c = 0; c < COLS; c++){
@@ -318,8 +318,8 @@ int main(int argc, char** argv){
                         fully_connected_layer_w[k][n] -= fully_connected_layer_deriv[k][n] * learning_rate;
                         fully_connected_layer_deriv[k][n] = 0;
                     }
-                    second_layer_bias[n] -= second_layer_bias_deriv[n] * learning_rate;
-                    second_layer_bias_deriv[n] = 0;
+                    second_layer_bias[k] -= second_layer_bias_deriv[n] * learning_rate;
+                    second_layer_bias_deriv[k] = 0;
                 }
             }
             if(j % 5 == 0){
