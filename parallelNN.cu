@@ -7,6 +7,7 @@
 #include <string>
 #include <ctime>
 #include <algorithm>
+#include <fcntl.h>
 
 //constants
 #define TRAINING_SET_SIZE 60000
@@ -65,7 +66,7 @@ void read_images(const std::string &file_name, float*** (&imgs)){
         assert(rv == num_rows*num_cols);
 
         for(int r = 0; r < num_rows; r++){
-            imgs = new float[num_cols]();
+            imgs[i][r] = new float[num_cols]();
             for(int c = 0; c < num_cols; c++){
                 imgs[i][r][c] = double(tmp_img[r][c])/127.5 - 1;
             }
@@ -97,14 +98,14 @@ void read_labels(const std::string &file_name, unsigned char* (&labels)){
     rv = read(fd, labels, num_labels);
     for(int i = 0; i < num_labels; i++){
         //all labels are 0-9
-        assert(labels[i] >= 0 && labels[i] <= 9);
+        //assert(labels[i] >= 0 && labels[i] <= 9);
     }
     rv = close(fd);
     assert(rv == 0);
 
 }
 
-void generateWeights(float*** (&ilw), float** (&ild), float*** (&fclw), float** (&fcld)){
+void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** (&fcld)){
 
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     unsigned seed = 8493;
@@ -157,16 +158,16 @@ float* softmax(float *in){
         out[i] = out[i]/sum;
     }
     */
-    std::transform(out, out + ((int) NUM_NEURONS/EPOCH_SIZE), out, [sum](auto e) {return e/sum;});
+    std::transform(out, out + ((int) NUM_NEURONS/EPOCH_SIZE), out, [sum](float e) {return e/sum;});
 
     return out;
 
 }
 
 float* softmax_ds(float* out, float* us){
-    float* sm_ds = new float[(int) NUM_NEURONS/EPOCH_SIZE)]();
-    for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE); i++){
-        for(size_t j = 0; j < (int) NUM_NEURONS/EPOCH_SIZE); j++){
+    float* sm_ds = new float[(int) NUM_NEURONS/EPOCH_SIZE]();
+    for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
+        for(size_t j = 0; j < (int) NUM_NEURONS/EPOCH_SIZE; j++){
             if( i == j) {
                 sm_ds[j] += (out[i]*(1 - out[j])) * us[i];
             } else {
@@ -261,7 +262,7 @@ int main(int argc, char** argv){
 
                 soft_max_layer_deriv = softmax_ds(soft_max_layer, cross_ent_layer);
 
-                for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE); k++){
+                for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
                         second_layer_deriv[n] = 0;
                     }
@@ -290,7 +291,7 @@ int main(int argc, char** argv){
                     }
                 }
 
-                for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE); k++){
+                for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
                         fully_connected_layer_w[k][n] -= fully_connected_layer_deriv[k][n] * learning_rate;
                         fully_connected_layer_deriv[k][n] = 0;
