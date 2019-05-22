@@ -191,8 +191,8 @@ int main(int argc, char** argv){
     read_images(std::string(argv[1]), training_images);
     read_labels(std::string(argv[2]), training_labels);
 
-    float ***input_layer_w, input_layer_deriv;
-    float **fully_connected_layer_w, fully_connected_layer_deriv;
+    float ***input_layer_w, ***input_layer_deriv;
+    float **fully_connected_layer_w, **fully_connected_layer_deriv;
 
     generateWeights(input_layer_w, input_layer_deriv, fully_connected_layer_w, fully_connected_layer_deriv);
 
