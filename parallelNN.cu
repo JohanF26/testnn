@@ -164,6 +164,7 @@ float* softmax(float *in){
     }
     */
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
+        std::cout << sum << std::endl;
         assert(out[i] != 0);
         std::cout << "GOOD" << std::endl;
     }
