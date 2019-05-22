@@ -296,6 +296,9 @@ int main(int argc, char** argv){
                     second_layer_bias_deriv[k] = soft_max_layer_deriv[k] / BATCH_SIZE;
                 }
 
+                std::cout << "2" << std::endl;
+                std::cout << second_layer_deriv[0] << std::endl;
+
                 for(int n = 0; n < NUM_NEURONS; n++){
                     for(int r = 0; r < ROWS; r++){
                         for(int c = 0; c < COLS; c++){
@@ -304,8 +307,6 @@ int main(int argc, char** argv){
                     }
                     first_layer_bias_deriv[n] = second_layer_deriv[n] / BATCH_SIZE;
                 }
-                std::cout << "2" << std::endl;
-                std::cout << input_layer_deriv[0][0][0] << std::endl;
 
                 //UPDATE WEIGHTS
 
