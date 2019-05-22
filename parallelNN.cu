@@ -155,6 +155,7 @@ float* softmax(float *in){
     float* out = new float[(int) NUM_NEURONS/EPOCH_SIZE];
     float sum = 0;
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
+        std::cout << in[i] << " " << C << std::endl;
         out[i] = std::exp(in[i] - C);
         assert(out[i] != 0);
         sum += out[i];
