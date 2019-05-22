@@ -129,7 +129,7 @@ void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** 
             for(int c = 0; c < COLS; c++){
                 //normal_distribution represents unbownded distribution, divide by sqrt(N)
                 ilw[n][r][c] = distribution(generator) / sqrt(NUM_NEURONS);
-                std::cout << distribution(generator) / sqrt(NUM_NEURONS) << std::endl;
+                //std::cout << distribution(generator) / sqrt(NUM_NEURONS) << std::endl;
                 //initially weights are 0
                 ild[n][r][c] = 0;
             }
