@@ -150,19 +150,20 @@ void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** 
 float* softmax(float *in){
     // Use identity softmax(x) == softmax(x - C)
     const auto C = *std::max_element(in, in+((int) NUM_NEURONS/EPOCH_SIZE));
+    std::cout << "Max element: " << C << std::endl;
     //same length as in
     float* out = new float[(int) NUM_NEURONS/EPOCH_SIZE];
-    float sum;
+    float sum = 0;
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
         out[i] = std::exp(in[i] - C);
         sum += out[i];
     }
-    /*
+    
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
         out[i] = out[i]/sum;
     }
-    */
-    std::transform(out, out + ((int) NUM_NEURONS/EPOCH_SIZE), out, [sum](float e) {return e/sum;});
+
+    //std::transform(out, out + ((int) NUM_NEURONS/EPOCH_SIZE), out, [sum](float e) {return e/sum;});
 
     return out;
 
