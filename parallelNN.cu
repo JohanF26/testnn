@@ -373,7 +373,7 @@ int main(int argc, char** argv){
                 cudaMemcpy(dense_layer_w1, hidden_layer_w1,  NUM_NEURONS*ROWS*COLS*(sizeof(float)), cudaMemcpyHostToDevice);
                 cudaMemcpy(dense_layer_ds1, hidden_layer_ds1, NUM_NEURONS*ROWS*COLS*(sizeof(float)), cudaMemcpyHostToDevice);
 
-                update_dense_weights<<<(int)NUM_NEURONS/EPOCH_SIZE, NUM_NEURONS>>>(dense_layer_w1, dense_layer_ds1);
+                update_dense_weights<<<ROWS*COLS, NUM_NEURONS>>>(dense_layer_w1, dense_layer_ds1);
 
                 //copy back
                 cudaMemcpy(hidden_layer_w1, dense_layer_w1, NUM_NEURONS* ((int)NUM_NEURONS/EPOCH_SIZE) *(sizeof(float)), cudaMemcpyHostToDevice);
