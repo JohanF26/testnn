@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <cassert>
@@ -212,6 +213,14 @@ int main(int argc, char** argv){
     //Cross-entropy layer
     float* cross_ent_layer = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
 
+    //bias nodes
+    float *first_layer_bias = new float[NUM_NEURONS]();
+    float *first_layer_bias_deriv = new float[NUM_NEURONS]();
+    float *second_layer_bias =  new float[(int)NUM_NEURONS/EPOCH_SIZE]();
+    float *second_layer_bias_deriv = new float[(int)NUM_NEURONS/EPOCH_SIZE]();
+
+    std::srand(std::time(0));
+
     for(int e = 0; e < EPOCH_SIZE; e++){
         for(int j = 0; j < EPOCH_SIZE; j++){
 
@@ -232,17 +241,23 @@ int main(int argc, char** argv){
                 float learning_rate = BATCH_SIZE / 1000;
                 for(int n = 0; n < NUM_NEURONS; n++){
                     float temp_result = 0;
-                    for(int r = 0; r < ROWS; r++){
-                        for(int c = 0; c < COLS; c++){
-                            //calculate results of the first layer
-                            temp_result += input_layer_w[n][r][c] * current_image[r][c];
-                        }
-                    }
-                    //ReLU
-                    if(temp_result < 0){
-                        first_layer[n] = 0;
+                    //dropout rate of 0.4%
+                    if(std::rand() % 1000 < 4){
+                        first_layer[n] = 0
                     } else{
-                        first_layer[n] = temp_result;
+                        for(int r = 0; r < ROWS; r++){
+                            for(int c = 0; c < COLS; c++){
+                                //calculate results of the first layer
+                                temp_result += input_layer_w[n][r][c] * current_image[r][c];
+                            }
+                        }
+                        //ReLU
+                        temp_result += first_layer_bias[n];
+                        if(temp_result < 0){
+                            first_layer[n] = 0;
+                        } else{
+                            first_layer[n] = temp_result;
+                        }
                     }
                 }
 
@@ -250,6 +265,7 @@ int main(int argc, char** argv){
                     for(int n = 0; n < NUM_NEURONS; n++){
                         second_layer[k] += fully_connected_layer_w[k][n] * first_layer[n];
                     }
+                    second_layer[k] += second_layer_bias[k];
                 }
 
                 soft_max_layer = softmax(second_layer);
@@ -272,6 +288,7 @@ int main(int argc, char** argv){
                         fully_connected_layer_deriv[k][n] += ((first_layer[n] * soft_max_layer_deriv[k]) / BATCH_SIZE);
                         second_layer_deriv[n] += fully_connected_layer_w[k][n] * soft_max_layer_deriv[k];
                     }
+                    second_layer_bias_deriv[k] = soft_max_layer_deriv[k] / BATCH_SIZE;
                 }
 
                 for(int n = 0; n < NUM_NEURONS; n++){
@@ -280,6 +297,7 @@ int main(int argc, char** argv){
                             input_layer_deriv[n][r][c] +=  (current_image[r][c] * second_layer_deriv[n])/BATCH_SIZE;
                         }
                     }
+                    first_layer_bias_deriv[n] = second_layer_deriv[n] / BATCH_SIZE;
                 }
 
                 //UPDATE WEIGHTS
@@ -291,6 +309,8 @@ int main(int argc, char** argv){
                             input_layer_deriv[n][r][c] = 0;
                         }
                     }
+                    first_layer_bias[n] -= first_layer_bias_deriv[n] * learning_rate;
+                    first_layer_bias_deriv[n] = 0;
                 }
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
@@ -298,6 +318,8 @@ int main(int argc, char** argv){
                         fully_connected_layer_w[k][n] -= fully_connected_layer_deriv[k][n] * learning_rate;
                         fully_connected_layer_deriv[k][n] = 0;
                     }
+                    second_layer_bias[n] -= second_layer_bias_deriv[n] * learning_rate;
+                    second_layer_bias_deriv[n] = 0;
                 }
             }
             if(j % 5 == 0){
