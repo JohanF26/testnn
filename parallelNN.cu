@@ -285,6 +285,9 @@ int main(int argc, char** argv){
 
                 soft_max_layer_deriv = softmax_ds(soft_max_layer, cross_ent_layer);
 
+                std::cout << "2" << std::endl;
+                std::cout << soft_max_layer_deriv[0] << std::endl;
+
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
                         second_layer_deriv[n] = 0;
@@ -295,9 +298,6 @@ int main(int argc, char** argv){
                     }
                     second_layer_bias_deriv[k] = soft_max_layer_deriv[k] / BATCH_SIZE;
                 }
-
-                std::cout << "2" << std::endl;
-                std::cout << second_layer_deriv[0] << std::endl;
 
                 for(int n = 0; n < NUM_NEURONS; n++){
                     for(int r = 0; r < ROWS; r++){
