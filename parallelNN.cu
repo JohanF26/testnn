@@ -150,14 +150,14 @@ void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** 
 float* softmax(float *in){
     // Use identity softmax(x) == softmax(x - C)
     const auto C = *std::max_element(in, in+((int) NUM_NEURONS/EPOCH_SIZE));
-    std::cout << "Max element: " << C << std::endl;
+    //std::cout << "Max element: " << C << std::endl;
     //same length as in
     float* out = new float[(int) NUM_NEURONS/EPOCH_SIZE];
     float sum = 0;
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
-        std::cout << in[i] - C << std::endl;
+        //std::cout << in[i] - C << std::endl;
         out[i] = std::exp(in[i] - C);
-        assert(out[i] != 0);
+        //assert(out[i] != 0);
         sum += out[i];
     }
     /*
@@ -171,12 +171,12 @@ float* softmax(float *in){
     // }
     std::transform(out, out + ((int) NUM_NEURONS/EPOCH_SIZE), out, [sum](float e) {return e/sum;});
 
-    for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
-        assert(out[i] != 0);
-        if(out[i] != 0){
-            std::cout << out[i] << std::endl;
-        }
-    }
+    // for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
+    //     assert(out[i] != 0);
+    //     if(out[i] != 0){
+    //         std::cout << out[i] << std::endl;
+    //     }
+    // }
 
     return out;
 
@@ -293,8 +293,8 @@ int main(int argc, char** argv){
                         }
                     }
                 }
-                std::cout << "1" << std::endl;
-                std::cout << input_layer_w[0][0][0] << std::endl;
+                //std::cout << "1" << std::endl;
+                //std::cout << input_layer_w[0][0][0] << std::endl;
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
