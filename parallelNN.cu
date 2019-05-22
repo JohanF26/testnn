@@ -283,10 +283,10 @@ int main(int argc, char** argv){
 
                 //BACK-PROPAGATION
 
-                soft_max_layer_deriv = softmax_ds(soft_max_layer, cross_ent_layer);
-
                 std::cout << "2" << std::endl;
-                std::cout << soft_max_layer_deriv[0] << std::endl;
+                std::cout << cross_ent_layer[0] << std::endl;
+
+                soft_max_layer_deriv = softmax_ds(soft_max_layer, cross_ent_layer);
 
                 for(int k = 0; k < (int) NUM_NEURONS/EPOCH_SIZE; k++){
                     for(int n = 0; n < NUM_NEURONS; n++){
