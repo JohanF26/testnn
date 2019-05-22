@@ -31,7 +31,7 @@ void toLittleEndian(int &num){
           (0xFF000000&(num << 24));
 }
 
-void read_images(const std::string &file_name, float*** (&imgs)){
+void read_images(const std::string &file_name, float*** imgs){
     int fd;
     fd = open(file_name.c_str(), O_RDONLY);
     assert(fd >= 0);
@@ -80,7 +80,7 @@ void read_images(const std::string &file_name, float*** (&imgs)){
     assert(rv == 0);
 }
 
-void read_labels(const std::string &file_name, unsigned char* (&labels)){
+void read_labels(const std::string &file_name, unsigned char* labels){
     int fd;
     fd = open(file_name.c_str(), O_RDONLY);
     assert(fd >= 0);
@@ -108,7 +108,7 @@ void read_labels(const std::string &file_name, unsigned char* (&labels)){
 
 }
 
-void generateWeights(float*** (&ilw), float*** (&ild), float** (&fclw), float** (&fcld)){
+void generateWeights(float*** ilw, float*** ild, float** fclw, float** fcld){
 
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     unsigned seed = 8493;
