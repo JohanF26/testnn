@@ -156,6 +156,7 @@ float* softmax(float *in){
     float sum = 0;
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
         out[i] = std::exp(in[i] - C);
+        assert(out[i] != 0);
         sum += out[i];
     }
     /*
@@ -163,11 +164,10 @@ float* softmax(float *in){
         out[i] = out[i]/sum;
     }
     */
-    for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
-        std::cout << sum << std::endl;
-        assert(out[i] != 0);
-        std::cout << "GOOD" << std::endl;
-    }
+    // for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
+    //     assert(out[i] != 0);
+    //     std::cout << "GOOD" << std::endl;
+    // }
     std::transform(out, out + ((int) NUM_NEURONS/EPOCH_SIZE), out, [sum](float e) {return e/sum;});
 
     for(size_t i = 0; i < (int) NUM_NEURONS/EPOCH_SIZE; i++){
