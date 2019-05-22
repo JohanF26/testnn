@@ -318,7 +318,7 @@ int main(int argc, char** argv){
                         fully_connected_layer_w[k][n] -= fully_connected_layer_deriv[k][n] * learning_rate;
                         fully_connected_layer_deriv[k][n] = 0;
                     }
-                    second_layer_bias[k] -= second_layer_bias_deriv[n] * learning_rate;
+                    second_layer_bias[k] -= second_layer_bias_deriv[k] * learning_rate;
                     second_layer_bias_deriv[k] = 0;
                 }
             }
