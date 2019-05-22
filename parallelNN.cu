@@ -201,7 +201,7 @@ int main(int argc, char** argv){
 
     generateWeights(input_layer_w, input_layer_deriv, fully_connected_layer_w, fully_connected_layer_deriv);
 
-    std::cout << input_layer_w[0][0][0] << std::endl;
+    //std::cout << input_layer_w[0][0][0] << std::endl;
 
     //First fully connected layer
     float *first_layer = new float[NUM_NEURONS]();
