@@ -226,7 +226,7 @@ int main(int argc, char** argv){
                 }
                 //current label and img displaced by i (the images already processed)
                 int current_label = (int) training_labels[EPOCH_SIZE*j + i];
-                int current_image = training_images[EPOCH_SIZE*j + i];
+                float** current_image = training_images[EPOCH_SIZE*j + i];
 
                 float learning_rate = BATCH_SIZE / 1000;
                 for(int n = 0; n < NUM_NEURONS; n++){
